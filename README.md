@@ -1,7 +1,7 @@
 <h1 align="center">Gene Research / Sequence Workbench</h1>
 
 <p align="center">
-  手持ちのゲノム、BLAST+、Primer3を使って、Windows上で配列解析をGUI操作するためのローカルWebワークベンチ。<br>
+  手持ちのゲノム、BLAST+、Primer3を使って、Windows上で配列解析・プライマー設計・BLAST結果確認をGUI操作するローカルWebワークベンチ。<br>
   A local-first Windows-friendly sequence workbench for user-supplied genomes, BLAST+, and Primer3.
 </p>
 
@@ -10,37 +10,49 @@
   <img alt="Runs locally" src="https://img.shields.io/badge/runs-localhost-0f766e.svg">
   <img alt="Data" src="https://img.shields.io/badge/data-user%20supplied-2563eb.svg">
   <img alt="UI" src="https://img.shields.io/badge/UI-Japanese--first-f59e0b.svg">
+  <img alt="Backend" src="https://img.shields.io/badge/backend-FastAPI-009688.svg">
+  <img alt="Frontend" src="https://img.shields.io/badge/frontend-React%20%2B%20Vite-646cff.svg">
 </p>
 
 ---
 
 ## 日本語
 
-### 何ができる？
+### これは何？
 
-Gene Research / Sequence Workbench は、研究者が手元のゲノム配列やBLAST DBを使って、
-ブラウザGUIから配列解析、プライマー設計、BLAST結果確認を行うためのローカルツールです。
+Gene Research / Sequence Workbench は、研究者が自分のPCに置いたゲノム配列やBLAST DBを使って、
+配列解析、Primer3によるプライマー設計、ローカルBLAST、PrimerBLAST風チェック、CDS/エキソン増幅候補の確認を
+ブラウザGUIから行うためのローカルワークベンチです。
 
-このリポジトリにゲノムデータ、BLAST DB、Primer3、BLAST+本体は含めません。ユーザーが自分の
-PCに用意したデータとツールを登録して使います。そのため、公開リポジトリとして配布しつつ、
-非公開ゲノムや研究室内データをGitに含めずに運用できます。
+目的は、コマンドラインだけで完結しにくい日常的な配列確認作業を、Windows上のGUIとして扱いやすくすることです。
+ゲノムやBLAST DBはこのリポジトリに含めず、ユーザーが自分の環境で用意して登録します。
 
-### 主な機能
+通常利用では、解析対象の配列やゲノムデータを外部サービスへアップロードしません。frontendとbackendは
+`localhost` で動かす前提です。
 
-| 機能 | 内容 |
-| --- | --- |
-| Sequence | DNA配列の基本情報、ORF、制限酵素サイト、SeqViz表示 |
-| Primers | Primer3を使った一般プライマー設計 |
-| BLAST | ユーザー登録のローカルBLAST DBに対する検索 |
-| BLAST-OR | BLASTヒットのアラインメント確認 |
-| CDS/エキソン増幅 | ローカルDBと注釈情報を使った増幅候補設計 |
-| シーケンスプライマー | シーケンス用プライマー候補の整理 |
-| PrimerBLAST | Primer3候補のローカルBLAST確認 |
-| Primer 逆引き | 既存プライマーのヒット/増幅候補確認 |
-| DB管理 | makeblastdb prefixの登録、DB状態確認 |
-| CAPSプライマー作成 | 候補領域からCAPS向けプライマー設計 |
+### 何に使える？
 
-### 含まないもの
+- 自分のゲノムFASTAをBLAST DB化して、GUIから検索したい
+- Primer3で設計したプライマーを、ローカルBLAST DBに当てて特異性を見たい
+- BLAST結果のヒット位置、向き、複数ヒットを表で確認したい
+- BLAST-ORのようにアラインメントを見ながら候補を比較したい
+- CDSやエキソンをまたぐ増幅候補を、手元DBと注釈情報で検討したい
+- 既存プライマーがどこに当たるか、増幅産物がどれくらい出るか調べたい
+- ゲノム本体や研究室内データをGitHubに入れず、アプリだけ共有したい
+
+### 重要な設計方針
+
+このリポジトリは「アプリの器」です。
+
+含めるもの:
+
+- React + Vite frontend
+- FastAPI backend
+- DB登録、BLAST実行、Primer3呼び出し用のコード
+- 公開向けドキュメント
+- 小さな公開プリセット定義
+
+含めないもの:
 
 - 参照ゲノム本体
 - BLAST DB
@@ -48,30 +60,62 @@ PCに用意したデータとツールを登録して使います。そのため
 - BLAST+バイナリ
 - APIキー
 - 個人PCの絶対パス
-- 外部参照サービスへの依存
+- 研究室内データ名
+- 外部参照サービスへの必須依存
 - ハードウェア固有のBLAST高速化機能
 
 公開用の例として Arabidopsis thaliana のプリセットだけを残しています。不要なら削除できます。
 
-### 基本の流れ
+### 機能一覧
 
-1. このリポジトリを取得する
-2. frontendを起動する
-3. backendを起動する
-4. 自分のFASTA/GFFなどをリポジトリ外に置く
-5. `makeblastdb` でBLAST DBを作る
-6. DB管理タブで `makeblastdb` prefix を登録する
-7. BLAST、PrimerBLAST、CDS/エキソン増幅などで使う
+| タブ / 機能 | できること | 主に必要なもの |
+| --- | --- | --- |
+| Workflow | 主要タブへの導線、作業の入口 | frontend |
+| Sequence | DNA配列の基本情報、GC%、ORF、制限酵素サイト、SeqViz表示 | frontend + backend |
+| Primers | Primer3による一般プライマー設計、候補の整理、ローカルDBでの特異性確認 | backend + Primer3 + BLAST+ |
+| BLAST | ユーザー登録のローカルBLAST DBに対する検索、ヒット表、簡易可視化 | backend + BLAST+ + BLAST DB |
+| BLAST-OR | BLASTヒットのアラインメント確認、折り返し表示、注釈確認 | backend + BLAST+ + BLAST DB |
+| CDS/エキソン増幅 | 遺伝子構造や領域情報を使った増幅候補設計 | backend + Primer3 + BLAST+ + 注釈 |
+| シーケンスプライマー | シーケンス用プライマー候補の整理 | frontend / backend |
+| PrimerBLAST | Primer3候補をローカルBLAST DBで確認するPrimerBLAST風ワークフロー | backend + Primer3 + BLAST+ |
+| Primer 逆引き | 既存プライマーのヒット、ペア、予測増幅産物の確認 | backend + BLAST+ |
+| DB管理 | makeblastdb prefixの登録、DB一覧、状態確認、公開プリセットからの取得導線 | backend + BLAST+ |
+| CAPSプライマー作成 | 候補領域からCAPS向けプライマー設計 | backend + Primer3 + BLAST+ |
 
-### フロントエンド起動
+### 全体構成
+
+```text
+Gene-research/
+  frontend/workbench/        React + Vite UI
+  backend/bioapi/            FastAPI backend
+  docs/                      追加ドキュメント
+  start_windows.bat          Windows向けfrontend起動補助
+  start_workbench.sh         Unix系frontend起動補助
+```
+
+実行時の役割:
+
+```text
+Browser UI
+  -> FastAPI backend on 127.0.0.1
+      -> Primer3
+      -> BLAST+
+      -> user-provided BLAST DB
+      -> user-provided reference/annotation files
+```
+
+### 最短起動: frontendだけ
+
+frontendだけなら、配列貼り付けUIや画面の確認ができます。BLASTやPrimer3を使うにはbackendも必要です。
 
 ```powershell
-cd frontend\workbench
+git clone https://github.com/light-suzuki/Gene-research.git
+cd Gene-research\frontend\workbench
 npm install
 npm run dev
 ```
 
-Viteが表示するローカルURLを開きます。通常は次のようなURLです。
+Viteが表示するローカルURLを開きます。
 
 ```text
 http://localhost:5173/
@@ -79,7 +123,7 @@ http://localhost:5173/
 
 Windowsでは、リポジトリ直下の `start_windows.bat` からfrontendだけを起動することもできます。
 
-### バックエンド起動
+### backend起動
 
 Primer3、BLAST、DB管理を使う場合はbackendを起動します。
 
@@ -104,17 +148,28 @@ Invoke-RestMethod http://127.0.0.1:8000/blast/local_dbs
 
 ゲノムデータはリポジトリ外に置いてください。
 
+1. FASTAを用意する
+2. BLAST+をインストールする
+3. `makeblastdb` でDBを作る
+4. Workbenchの `DB管理` タブでDB prefixを登録する
+5. 各解析タブでそのDBを選ぶ
+
+例:
+
 ```powershell
 makeblastdb -in C:\path\to\genome.fa -dbtype nucl -out C:\path\to\blastdb\my_genome
 ```
 
-Workbenchの `DB管理` タブで、次のような `makeblastdb` prefix を登録します。
+`DB管理` に登録する値:
 
 ```text
 C:\path\to\blastdb\my_genome
 ```
 
-### Primer3
+`my_genome.nhr` / `my_genome.nin` / `my_genome.nsq` のようなインデックスファイルではなく、
+`-out` に指定した prefix を登録します。
+
+### Primer3を使う
 
 Primer3は同梱していません。別途インストールし、`primer3_core` を `PATH` に入れるか、
 次のように指定してください。
@@ -123,7 +178,9 @@ Primer3は同梱していません。別途インストールし、`primer3_core
 $env:PRIMER3_CORE = "C:\path\to\primer3_core.exe"
 ```
 
-### BLAST+
+WSL内のPrimer3を使う構成も可能ですが、その場合はWindows側backendから呼べるようにラッパーや環境変数を設定してください。
+
+### BLAST+を使う
 
 BLAST+は同梱していません。NCBI BLAST+を別途インストールし、`PATH` に入れるか、
 次のように指定してください。
@@ -133,7 +190,7 @@ $env:BLAST_BIN_DIR = "C:\path\to\ncbi-blast+\bin"
 $env:BLASTDB_DIR = "C:\path\to\blastdb"
 ```
 
-### ゲノムプリセットの追加
+### 公開プリセットを追加する
 
 公開プリセットはここに集約しています。
 
@@ -144,12 +201,20 @@ frontend/workbench/src/config/referencePresets.ts
 別ゲノム向けに調整する場合は、まずこのファイルを見てください。コンポーネント内に
 種名、研究室データ名、個人パス、APIキーを直接書かないでください。
 
-詳細:
+より詳しい手順:
 
 ```text
 docs/ADAPTING_REFERENCE_GENOMES.md
 docs/AGENT_GUIDE.md
 ```
+
+### セキュリティとプライバシー
+
+- backendはデフォルトで `127.0.0.1` にbindします。
+- 通常利用では、入力配列やゲノムデータを外部へ送信しません。
+- APIキーは不要です。
+- `.env`、ゲノム、BLAST DB、解析結果、個人パスはGitに入れないでください。
+- LANやインターネットへ公開する場合は、認証、CORS、管理API保護、ファイルアクセス制限を別途設計してください。
 
 ### 開発・検証
 
@@ -158,6 +223,23 @@ npm --prefix frontend\workbench run typecheck
 npm --prefix frontend\workbench run build
 python -m py_compile backend\bioapi\app\main.py
 ```
+
+frontendの依存を入れていない場合:
+
+```powershell
+cd frontend\workbench
+npm install
+```
+
+### よくあるつまずき
+
+| 症状 | 確認すること |
+| --- | --- |
+| BLAST DBが出ない | `makeblastdb` の `-out` prefixを登録しているか |
+| BLAST実行に失敗する | BLAST+のbinが `PATH` または `BLAST_BIN_DIR` にあるか |
+| Primer3が動かない | `primer3_core` が `PATH` または `PRIMER3_CORE` にあるか |
+| backendに繋がらない | `uvicorn app.main:app --host 127.0.0.1 --port 8000` が起動しているか |
+| 解析データを公開したくない | FASTA/GFF/BLAST DBをリポジトリ外に置いているか |
 
 ### クレジット
 
@@ -192,14 +274,22 @@ The repository provides the application shell. It does not include reference
 genomes, BLAST databases, Primer3, or BLAST+ binaries. Users provide those tools
 and data locally, which keeps private genome data out of Git.
 
+### Use Cases
+
+- Search a user-built genome BLAST database from a GUI.
+- Design primers with Primer3 and check specificity against local BLAST DBs.
+- Inspect BLAST hits, coordinates, directions, and alignments.
+- Review predicted amplicons for existing primer pairs.
+- Work with private or unpublished genomes without committing data to GitHub.
+
 ### Features
 
 | Feature | Description |
 | --- | --- |
 | Sequence | Basic DNA summary, ORF detection, restriction sites, SeqViz view |
-| Primers | Primer3-based primer design |
+| Primers | Primer3-based primer design and local specificity checks |
 | BLAST | Search user-registered local BLAST databases |
-| BLAST-OR | Inspect BLAST alignments |
+| BLAST-OR | Inspect BLAST alignments in a readable view |
 | CDS/exon amplification | Design candidates using local DBs and annotations |
 | Sequencing primers | Organize sequencing-primer candidates |
 | PrimerBLAST | Check Primer3 candidates against local BLAST DBs |
@@ -218,17 +308,33 @@ and data locally, which keeps private genome data out of Git.
 - Required external reference service
 - Hardware-specific BLAST acceleration
 
-### Development
+### Architecture
 
-Frontend:
+```text
+Browser UI
+  -> FastAPI backend on 127.0.0.1
+      -> Primer3
+      -> BLAST+
+      -> user-provided BLAST DB
+      -> user-provided reference/annotation files
+```
+
+### Frontend
 
 ```powershell
-cd frontend\workbench
+git clone https://github.com/light-suzuki/Gene-research.git
+cd Gene-research\frontend\workbench
 npm install
 npm run dev
 ```
 
-Backend:
+Open the local URL shown by Vite, usually:
+
+```text
+http://localhost:5173/
+```
+
+### Backend
 
 ```powershell
 cd backend\bioapi
@@ -247,6 +353,14 @@ the `makeblastdb` prefix in DB Manager.
 makeblastdb -in C:\path\to\genome.fa -dbtype nucl -out C:\path\to\blastdb\my_genome
 ```
 
+Register:
+
+```text
+C:\path\to\blastdb\my_genome
+```
+
+Register the prefix passed to `-out`, not the generated index files.
+
 ### Checks
 
 ```powershell
@@ -254,6 +368,15 @@ npm --prefix frontend\workbench run typecheck
 npm --prefix frontend\workbench run build
 python -m py_compile backend\bioapi\app\main.py
 ```
+
+### Privacy Notes
+
+- The backend is intended to run on `127.0.0.1`.
+- No API key is required for the public local workflow.
+- Do not commit genomes, BLAST indexes, `.env` files, private results, or
+  machine-local paths.
+- If you expose the backend beyond localhost, add authentication and file-access
+  controls first.
 
 ### Credits
 
