@@ -947,35 +947,6 @@ export const PrimerPanel: React.FC = () => {
                           <span className="seq-hint">CPU（通常）</span>
                         </label>
                       </div>
-                      {false && blastUseNcbi && (
-                        <>
-                          <label className="seq-label">
-                            NCBI データベース:
-                            <select
-                              className="seq-input"
-                              value={ncbiDb}
-                              onChange={(e) => setNcbiDb(e.target.value)}
-                              disabled={blastLoading}
-                            >
-                              <option value="nt">nt（全配列, デフォルト）</option>
-                              <option value="refseq_genomic">refseq_genomic</option>
-                              <option value="refseq_rna">refseq_rna</option>
-                              <option value="swissprot">swissprot</option>
-                            </select>
-                          </label>
-                          <label className="seq-label">
-                            ENTREZ query（種フィルタなど）:
-                            <input
-                              type="text"
-                              className="seq-input"
-                              value={ncbiQuery}
-                              onChange={(e) => setNcbiQuery(e.target.value)}
-                              disabled={blastLoading}
-                            />
-                            <span className="seq-hint">デフォルト: </span>
-                          </label>
-                        </>
-                      )}
                       <button
                         type="button"
                         className="seq-button"

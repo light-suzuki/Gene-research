@@ -2729,18 +2729,6 @@ export const ExonPrimerPanel: React.FC<ExonPrimerPanelProps> = ({
                   placeholder="例: feature_001"
                 />
               </label>
-              {false && geneId && (
-                <span className="seq-hint">
-                  {(() => {
-                    const url = ensemblGeneUrl(geneId);
-                    return url ? (
-                      <a href={url ?? undefined} target="_blank" rel="noreferrer">
-                        外部ビューで開く
-                      </a>
-                    ) : null;
-                  })()}
-                </span>
-              )}
               <label className="seq-label">
                 species:
                 <input
@@ -3028,35 +3016,6 @@ export const ExonPrimerPanel: React.FC<ExonPrimerPanelProps> = ({
                 ローカル BLAST+
               </label>
             </div>
-            {false && blastUseNcbi && (
-              <div className="primer-row" style={{ alignItems: "center", flexWrap: "wrap" }}>
-                <div className="blast-backend-row" style={{ flexDirection: "row", gap: "0.8rem" }}>
-                  <label>
-                    <input type="checkbox" checked={ncbiPea} onChange={(e) => setNcbiPea(e.target.checked)} /> UserDB
-                    sativum
-                  </label>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={ncbiArabidopsis}
-                      onChange={(e) => setNcbiArabidopsis(e.target.checked)}
-                    />{" "}
-                    Arabidopsis thaliana
-                  </label>
-                </div>
-                <div className="primer-row" style={{ alignItems: "center", gap: "0.5rem" }}>
-                  <input
-                    className="seq-input"
-                    type="text"
-                    value={ncbiCustomQuery}
-                    onChange={(e) => setNcbiCustomQuery(e.target.value)}
-                    placeholder="例: Zea mays[Organism]"
-                    style={{ minWidth: "240px" }}
-                  />
-                  <span className="seq-hint">任意の ENTREZ query を追加できます。</span>
-                </div>
-              </div>
-            )}
             {blastUseLocal && (
               <>
                 <div className="blast-backend-row" style={{ flexDirection: "row", gap: "1rem", flexWrap: "wrap" }}>

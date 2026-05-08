@@ -1493,15 +1493,6 @@ export const PrimerReversePanel: React.FC = () => {
                   cancelDisabled={!singleJobIdStandard}
                 />
               ) : null}
-                {false && useGpu ? (
-                  <JobProgressCard
-                  title="BLAST（GPU）"
-                  jobId={singleJobIdGpu}
-                  job={singleJobInfoGpu}
-                  onCancel={singleJobIdGpu ? cancelSingleJobGpu : null}
-                  cancelDisabled={!singleJobIdGpu}
-                />
-              ) : null}
 
               {error && <p className="seq-error">エラー: {error}</p>}
             </>
