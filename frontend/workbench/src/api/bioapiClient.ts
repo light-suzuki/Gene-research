@@ -64,10 +64,10 @@ import { apiGetBinary, apiGetJson, apiGetText, apiPostJson } from "./http";
 
 // デフォルトの BioAPI ベース URL。
 // - 環境変数 VITE_BIOAPI_BASE_URL があればそれを優先。
-// - なければ Windows Commander の安定 localhost ポートを使う。
+// - なければ README の標準起動手順に合わせて localhost:8000 を使う。
 const DEFAULT_BIOAPI_BASE_URL =
   typeof window !== "undefined"
-    ? "http://127.0.0.1:18000"
+    ? "http://127.0.0.1:8000"
     : "http://localhost:8000";
 
 const normalizeBaseUrl = (value: string): string => value.replace(/\/+$/, "");
