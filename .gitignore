@@ -6,6 +6,7 @@ dist/
 __pycache__/
 *.py[cod]
 .env
+backend/bioapi/.env.wsl
 .workbench_run/
 *.log
 *.tmp
