@@ -7,6 +7,7 @@ start "Sequence Workbench Frontend" cmd /k "cd /d frontend\workbench && set VITE
 
 echo.
 echo Backend on WSL (recommended on Windows):
+echo   # first run in WSL (once): cp -n backend/bioapi/.env.wsl.example backend/bioapi/.env.wsl
 echo   wsl bash ./start_backend_wsl.sh
 echo.
 echo Backend on Windows Python (alternative):

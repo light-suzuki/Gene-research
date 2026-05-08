@@ -132,26 +132,42 @@ Primer3、BLAST、DB管理を使う場合はbackendを起動します。
 
 WindowsでGUI（frontend）を使い、backendはWSLで動かす最短手順です。
 
+| 役割 | 置き場所 |
+| --- | --- |
+| frontend (Vite/React), ブラウザ | Windows |
+| backend (FastAPI), BLAST+, Primer3, ゲノムFASTA/BLAST DB | WSL |
+
+backendをWSLで動かす場合、`BLASTDB_DIR` / `BLAST_BIN_DIR` / `PRIMER3_CORE` は **WSLパス**（`/home/...` や `/mnt/c/...`）を使います。
+
 1. Windowsでfrontendを起動
 
 ```powershell
 .\start_windows.bat
 ```
 
-2. 別ターミナルでWSL backendを起動
+2. WSL側設定（初回のみ）
+
+```bash
+cp -n backend/bioapi/.env.wsl.example backend/bioapi/.env.wsl
+# 必要に応じて backend/bioapi/.env.wsl を編集
+```
+
+3. 別ターミナルでWSL backendを起動
 
 ```powershell
 wsl bash ./start_backend_wsl.sh
 ```
 
-3. backend確認
+`start_backend_wsl.sh` は `.env.wsl` があれば読み込み、Windows形式パス（`C:\...`）が混ざっていると起動前に止めます。
+
+4. backend確認
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/tools/status
 ```
 
-WSL側に `python3` と `venv` が必要です。`start_backend_wsl.sh` は `.venv` を作成し、依存を入れて `uvicorn` を起動します。
+WSL側に `python3` と `venv` が必要です。`start_backend_wsl.sh` は `.venv` を作成し、依存を入れて `uvicorn` を起動します（BLAST+/Primer3 が未設定なら警告表示）。
 
 #### backendをWindows側Pythonで起動する場合
 
@@ -182,16 +198,16 @@ Invoke-RestMethod http://127.0.0.1:8000/blast/local_dbs
 4. Workbenchの `DB管理` タブでDB prefixを登録する
 5. 各解析タブでそのDBを選ぶ
 
-例:
+WSL backend構成の例:
 
-```powershell
-makeblastdb -in C:\path\to\genome.fa -dbtype nucl -out C:\path\to\blastdb\my_genome
+```bash
+makeblastdb -in /home/<user>/genomes/my_genome.fa -dbtype nucl -out /home/<user>/blastdb/my_genome
 ```
 
 `DB管理` に登録する値:
 
 ```text
-C:\path\to\blastdb\my_genome
+/home/<user>/blastdb/my_genome
 ```
 
 `my_genome.nhr` / `my_genome.nin` / `my_genome.nsq` のようなインデックスファイルではなく、
@@ -199,24 +215,35 @@ C:\path\to\blastdb\my_genome
 
 ### Primer3を使う
 
-Primer3は同梱していません。別途インストールし、`primer3_core` を `PATH` に入れるか、
-次のように指定してください。
+Primer3は同梱していません。別途インストールし、`primer3_core` を `PATH` に入れるか、backend実行環境に合わせて指定してください。
 
 ```powershell
 $env:PRIMER3_CORE = "C:\path\to\primer3_core.exe"
 ```
 
-WSL内のPrimer3を使う構成も可能ですが、その場合はWindows側backendから呼べるようにラッパーや環境変数を設定してください。
+```bash
+export PRIMER3_CORE=/usr/bin/primer3_core
+# または backend/bioapi/.env.wsl に設定
+```
+
+WSL backendを使う場合は、Primer3もWSL側に置くのが安全です。
 
 ### BLAST+を使う
 
-BLAST+は同梱していません。NCBI BLAST+を別途インストールし、`PATH` に入れるか、
-次のように指定してください。
+BLAST+は同梱していません。NCBI BLAST+を別途インストールし、`PATH` に入れるか、backend実行環境に合わせて指定してください。
 
 ```powershell
 $env:BLAST_BIN_DIR = "C:\path\to\ncbi-blast+\bin"
 $env:BLASTDB_DIR = "C:\path\to\blastdb"
 ```
+
+```bash
+export BLAST_BIN_DIR=/usr/bin
+export BLASTDB_DIR=/home/<user>/blastdb
+# または backend/bioapi/.env.wsl に設定
+```
+
+WSL backendを使う場合、DB作成・登録パスもWSLパスに揃えてください。
 
 ### 公開プリセットを追加する
 
@@ -266,6 +293,7 @@ npm install
 | BLAST DBが出ない | `makeblastdb` の `-out` prefixを登録しているか |
 | BLAST実行に失敗する | BLAST+のbinが `PATH` または `BLAST_BIN_DIR` にあるか |
 | Primer3が動かない | `primer3_core` が `PATH` または `PRIMER3_CORE` にあるか |
+| WSL backendが起動しない | `.env.wsl` に `C:\...` のようなWindowsパスが入っていないか |
 | backendに繋がらない | `uvicorn app.main:app --host 127.0.0.1 --port 8000` が起動しているか |
 | 解析データを公開したくない | FASTA/GFF/BLAST DBをリポジトリ外に置いているか |
 
@@ -379,19 +407,27 @@ On Windows, a common setup is frontend on Windows + backend on WSL:
 wsl bash ./start_backend_wsl.sh
 ```
 
+In this mode, keep boundaries explicit:
+
+- Windows: frontend dev server and browser UI
+- WSL: backend, NCBI BLAST+, Primer3, genome FASTA, and BLAST DB files
+
+If backend runs in WSL, use Linux paths (`/home/...` or `/mnt/c/...`) for
+`BLASTDB_DIR`, `BLAST_BIN_DIR`, and `PRIMER3_CORE`.
+
 ### Use Your Own Genome
 
 Keep genome files outside this repository, build a BLAST database, and register
 the `makeblastdb` prefix in DB Manager.
 
-```powershell
-makeblastdb -in C:\path\to\genome.fa -dbtype nucl -out C:\path\to\blastdb\my_genome
+```bash
+makeblastdb -in /home/<user>/genomes/my_genome.fa -dbtype nucl -out /home/<user>/blastdb/my_genome
 ```
 
 Register:
 
 ```text
-C:\path\to\blastdb\my_genome
+/home/<user>/blastdb/my_genome
 ```
 
 Register the prefix passed to `-out`, not the generated index files.
