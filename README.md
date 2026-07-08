@@ -1,5 +1,10 @@
 # Gene Research / Sequence Workbench
 
+[![CI](https://github.com/light-suzuki/Gene-research/actions/workflows/ci.yml/badge.svg)](https://github.com/light-suzuki/Gene-research/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/light-suzuki/=semver)](https://github.com/light-suzuki/Gene-research/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+
 A local-first sequence analysis GUI for Windows. The browser and React frontend run on Windows; FastAPI, NCBI BLAST+, and Primer3 run in WSL2 Ubuntu. Your genomes and BLAST databases stay on your computer.
 
 Windows向けのローカル配列解析GUIです。ブラウザとReact frontendはWindows、FastAPI・NCBI BLAST+・Primer3はWSL2 Ubuntuで動きます。ゲノムとBLAST DBは利用者のPC内に置きます。
