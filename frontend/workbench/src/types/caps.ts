@@ -71,6 +71,27 @@ export interface CapsDesignRequest {
   primer_dna_conc?: number | null;
 }
 
+export interface CapsReportDbInfo {
+  role: "ref" | "alt" | "screen";
+  label: string;
+  db_type: "nucl" | "prot" | "unknown";
+}
+
+export interface CapsReportToolInfo {
+  identity: string;
+  version: string;
+}
+
+export interface CapsReportMetadata {
+  schema_version: string;
+  app_version: string;
+  primer3: CapsReportToolInfo;
+  blast: CapsReportToolInfo;
+  dbs: CapsReportDbInfo[];
+  conditions: Record<string, string | number | boolean | null | string[]>;
+  specificity: Record<string, string | number | boolean | null | string[]>;
+}
+
 export interface CapsDesignResponse {
   ref_db: string;
   ref_entry: string;
@@ -89,5 +110,6 @@ export interface CapsDesignResponse {
   primer_pairs_generated: number;
   markers: CapsMarkerRow[];
   warnings: string[];
+  metadata?: CapsReportMetadata | null;
 }
 
