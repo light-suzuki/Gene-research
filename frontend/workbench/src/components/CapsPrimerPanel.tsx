@@ -162,6 +162,57 @@ const buildTsv = (res: CapsDesignResponse): string => {
   return [header, ...lines].join("\n");
 };
 
+const metadataLines = (meta: CapsDesignResponse["metadata"]): Array<[string, string]> => {
+  if (!meta) return [];
+  const lines: Array<[string, string]> = [
+    ["report_schema", meta.schema_version],
+    ["app_version", meta.app_version],
+    ["primer3", `${meta.primer3.identity} ${meta.primer3.version}`],
+    ["blast", `${meta.blast.identity} ${meta.blast.version}`],
+  ];
+  meta.dbs.forEach((db) => {
+    lines.push([`db_${db.role}`, `${db.label} (${db.db_type})`]);
+  });
+  const c = meta.conditions;
+  lines.push(["product_size", `${c.product_min ?? ""}–${c.product_max ?? ""}`]);
+  lines.push(["primer_num_return", String(c.primer_num_return ?? "")]);
+  lines.push(["max_markers", String(c.max_markers ?? "")]);
+  const enzymes = Array.isArray(c.enzymes) ? (c.enzymes as string[]) : [];
+  const enzymesText = enzymes.length
+    ? `${enzymes.length}種${enzymes.length > 10 ? `（${enzymes.slice(0, 10).join(", ")}…）` : `（${enzymes.join(", ")}）`}`
+    : "-";
+  lines.push(["enzymes", enzymesText]);
+  lines.push(["enzymes_per_primer", String(c.enzymes_per_primer ?? "")]);
+  lines.push(["max_cuts_per_allele", String(c.max_cuts_per_allele ?? "")]);
+  lines.push(["min_fragment_len", String(c.min_fragment_len ?? "")]);
+  lines.push(["require_perfect_primers_in_alt", String(c.require_perfect_primers_in_alt ?? "")]);
+  lines.push(["primer3_tm", `opt=${c.primer3_opt_tm ?? ""} / min=${c.primer3_min_tm ?? ""} / max=${c.primer3_max_tm ?? ""}`]);
+  lines.push([
+    "primer3_length",
+    `min=${c.primer3_min_size ?? ""} / opt=${c.primer3_opt_size ?? ""} / max=${c.primer3_max_size ?? ""}`,
+  ]);
+  lines.push([
+    "primer3_gc",
+    `min=${c.primer3_min_gc ?? ""} / max=${c.primer3_max_gc ?? ""}`,
+  ]);
+  lines.push([
+    "primer3_salt_dna",
+    `salt=${c.primer3_salt_monovalent ?? ""} mM / dna=${c.primer3_dna_conc ?? ""} nM`,
+  ]);
+  const s = meta.specificity;
+  const screenDbs = Array.isArray(s.screen_dbs) ? (s.screen_dbs as string[]) : [];
+  lines.push(["screen_dbs", screenDbs.join(", ") || "-"]);
+  lines.push([
+    "screen_blast",
+    `${s.screen_task ?? ""} evalue=${s.screen_evalue ?? ""} max_target_seqs=${s.blast_max_target_seqs ?? ""} threads=${s.blast_num_threads ?? "auto"}`,
+  ]);
+  lines.push([
+    "alt_mapping",
+    `${s.alt_mapping_task ?? ""} evalue=${s.alt_mapping_evalue ?? ""} min_identity=${s.alt_mapping_min_identity_pct ?? ""}% min_coverage=${s.alt_mapping_min_coverage ?? ""}`,
+  ]);
+  return lines;
+};
+
 export const buildMarkdown = (res: CapsDesignResponse): string => {
   const lines: string[] = [];
   const dt = new Date();
@@ -174,6 +225,13 @@ export const buildMarkdown = (res: CapsDesignResponse): string => {
   );
   lines.push(`- Primer3 生成ペア数: ${res.primer_pairs_generated}`);
   lines.push(`- 返却マーカー数: ${res.markers.length}`);
+  const meta = metadataLines(res.metadata);
+  if (meta.length) {
+    lines.push("");
+    lines.push("## 解析条件（Reproducibility）");
+    lines.push("");
+    meta.forEach(([k, v]) => lines.push(`- ${k}: ${v}`));
+  }
   if (res.warnings?.length) {
     lines.push("");
     lines.push("## Warnings");
@@ -200,7 +258,7 @@ export const buildMarkdown = (res: CapsDesignResponse): string => {
   return lines.join("\n");
 };
 
-const buildXlsxSheets = (res: CapsDesignResponse): XlsxSheet[] => {
+export const buildXlsxSheets = (res: CapsDesignResponse): XlsxSheet[] => {
   const dbs = Array.from(new Set(res.markers.flatMap((m) => (m.blast ?? []).map((b) => b.db))));
   const header: Array<string> = [
     "#",
@@ -277,6 +335,7 @@ const buildXlsxSheets = (res: CapsDesignResponse): XlsxSheet[] => {
     ["mapped_by_blast", res.mapped_by_blast ? "true" : "false"],
     ["primer_pairs_generated", res.primer_pairs_generated],
     ["markers", res.markers.length],
+    ...metadataLines(res.metadata).map(([k, v]) => [k, v] as [string, string]),
   ];
 
   return [

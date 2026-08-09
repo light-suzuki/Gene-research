@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Dict, List, Optional
 
 from .sequence_utils import normalize_sequence
@@ -59,6 +60,30 @@ def _ensure_primer3_available(executable: str = "primer3_core") -> str:
             "`sudo apt-get update && sudo apt-get install -y primer3` でインストールできます。"
         )
     return resolved
+
+
+@lru_cache(maxsize=1)
+def get_primer3_version() -> str:
+    """
+    primer3_core のバージョンを返す（例: "2.6.1"）。
+
+    primer3_core 自体は `--version` で直接 version を返さず usage を出す
+    （exit code は 0 以外）ため、usage 内の "libprimer3 release X.Y.Z" を
+    stdout/stderr 双方からパースする。取得できない場合は "unavailable" を返す。
+    """
+    try:
+        executable = _ensure_primer3_available()
+        proc = subprocess.run(
+            [executable, "--version"],
+            capture_output=True,
+            check=False,
+            timeout=15,
+        )
+    except Exception:
+        return "unavailable"
+    combined = proc.stdout.decode("utf-8", errors="replace") + proc.stderr.decode("utf-8", errors="replace")
+    m = re.search(r"libprimer3 release\s+([0-9.]+)", combined)
+    return m.group(1) if m else "unavailable"
 
 
 def _build_primer3_input(

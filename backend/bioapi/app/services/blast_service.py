@@ -236,6 +236,48 @@ def _db_exists(db_prefix: Path, *, db_type: str = "nucl") -> bool:
     return any(p.exists() for p in candidate_files)
 
 
+def infer_db_type(db_prefix: str) -> str:
+    """
+    BLAST DB prefix から DB 種別（nucl / prot / unknown）を推定する。
+
+    拡張子ファイルの存在（.nsq = nucl / .psq = prot）で判定する。
+    """
+    base = str(db_prefix or "")
+    if not base.strip():
+        return "unknown"
+    p = Path(base)
+    if any(p.with_suffix(s).exists() for s in (".nsq", ".nhr", ".nin")):
+        return "nucl"
+    if any(p.with_suffix(s).exists() for s in (".psq", ".phr", ".pin")):
+        return "prot"
+    return "unknown"
+
+
+@lru_cache(maxsize=8)
+def get_blast_version() -> str:
+    """
+    NCBI BLAST+ のバージョンを返す（例: "2.12.0+"）。
+
+    取得できない場合は "unavailable" を返す。
+    """
+    try:
+        path = _blast_bin("blastn")
+        proc = subprocess.run(
+            [path, "-version"],
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=15,
+        )
+    except Exception:
+        return "unavailable"
+    if proc.returncode != 0:
+        return "unavailable"
+    first = (proc.stdout or "").splitlines()[0] if (proc.stdout or "").strip() else ""
+    m = re.match(r"^blastn:\s+(.+)", first)
+    return m.group(1).strip() if m else first.strip() or "unavailable"
+
+
 @lru_cache(maxsize=64)
 def _get_db_total_bases(db_prefix: str) -> int | None:
     """

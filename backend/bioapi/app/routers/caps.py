@@ -83,6 +83,7 @@ async def design_caps(request: CapsDesignRequest) -> CapsDesignResponse:
         primer_pairs_generated=payload["primer_pairs_generated"],
         markers=markers,
         warnings=payload.get("warnings") or [],
+        metadata=payload["metadata"],
     )
 
 
