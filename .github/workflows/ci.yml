@@ -21,6 +21,8 @@ jobs:
         working-directory: frontend/workbench
       - run: npm run typecheck
         working-directory: frontend/workbench
+      - run: npm run test
+        working-directory: frontend/workbench
       - run: npm run build
         working-directory: frontend/workbench
       - run: npm audit --audit-level=moderate
