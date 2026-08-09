@@ -128,6 +128,24 @@ top-level UI panels instead of hiding the other tabs at runtime.
 
 各repoは表示だけを隠した複製ではなく、不要なトップレベルパネルをソースから除いた配布版です。
 
+### Sync check / 同期チェック
+
+focused repo の共通ファイル（backend / tools / launcher / security-critical な箇所）が
+親と同一であることは、`tools/check-focused-distributions.mjs` で機械的に検証できます。
+意図的な差分（`focusedTabs.ts`、repo 固有 README など）は
+`tools/focused-distributions.json` の allowlist に理由つきで記録されており、
+false positive にはなりません。
+
+```powershell
+node tools\check-focused-distributions.mjs              # drift チェック（一時領域に shallow clone）
+node tools\check-focused-distributions.mjs --self-test  # fixture による動作確認
+node tools\check-focused-distributions.mjs --record     # 同期後に source revision を manifest へ記録
+```
+
+exit code 0 = 同期済み / 1 = drift あり。親側で共通ファイルを変更したら、各 focused repo へ
+反映し、`--record` で parentRevision / revision を更新してください。CI は毎週月曜に
+このチェックを実行します（`.github/workflows/focused-distributions.yml`）。
+
 ## Verification / 検証
 
 Frontend:
