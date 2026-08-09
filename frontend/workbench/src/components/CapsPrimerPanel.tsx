@@ -4,7 +4,7 @@ import type { CapsDesignResponse, CapsMarkerRow } from "../types/caps";
 import { downloadMarkdown, openPrintViewForMarkdown } from "../utils/exportReport";
 import { downloadXlsx } from "../utils/exportXlsx";
 import type { XlsxSheet } from "../utils/exportXlsx";
-import { ensemblGeneUrl, isLocalOnlyDb, navigatorGeneUrl } from "../utils/ensembl";
+import { geneUrlForContext } from "../utils/ensembl";
 import {
   CUSTOM_DB_VALUE,
   FALLBACK_LOCAL_DB_OPTIONS,
@@ -162,7 +162,7 @@ const buildTsv = (res: CapsDesignResponse): string => {
   return [header, ...lines].join("\n");
 };
 
-const buildMarkdown = (res: CapsDesignResponse): string => {
+export const buildMarkdown = (res: CapsDesignResponse): string => {
   const lines: string[] = [];
   const dt = new Date();
   lines.push("# CAPS プライマー作成レポート");
@@ -186,28 +186,7 @@ const buildMarkdown = (res: CapsDesignResponse): string => {
   lines.push("| # | Enzyme | Gene | Ref range | Alt range | Ref frag | Alt frag | mismatch |");
   lines.push("| ---: | --- | --- | --- | --- | --- | --- | ---: |");
   res.markers.slice(0, 200).forEach((m) => {
-    const url = ensemblGeneUrl(m.gene_label ?? null);
-    // TODO: markdown report logic update for Navigator (simplified for now to stick to Ensembl for plain text report or update helper?)
-    // For Markdown, we might want to keep simple links. Let's rely on the assumption that if it's local only, we might just put the ID or a Navigator link if possible.
-    // For now, let's leave md simple or use the new helper if we want.
-    // Actually, let's use the helper to get the RIGHT url.
-    // But we need to know if it's local db. Caps result has blast details but here we just have gene_label.
-    // We can infer from the DB context or just check the label pattern?
-    // gene_label alone might be GENE05G... which is Ensembl.
-    // If it's something else, maybe Navigator.
-    // For safety in Markdown, let's stick to ensemblGeneUrl for GENE IDs and maybe nothing for others unless we want to embed localhost links which might not work for sharing.
-    // Let's leave Markdown as is (Ensembl only) to valid external links, or maybe update if user requests.
-    // User request was "ref/ALT except -> Navigator".
-    // So if I have a gene label that is NOT Ensembl, I should link to Navigator?
-    // Markdown is static text, localhost link is fine for personal use.
-    // Let's update it.
-    /*
-    const localOnly = isLocalOnlyDb(...); // We don't have DB context easily here per gene...
-    Actually `m` comes from `res.markers`. `res` has `ref_db`.
-    But genes come from BLAST hits against MANY DBs.
-    Wait, `m.gene_label` is the primary gene label.
-    */
-
+    const url = geneUrlForContext({ geneId: m.gene_label ?? null, dbLabel: res.ref_db });
     const gene = m.gene_label ? (url ? `[${m.gene_label}](${url})` : m.gene_label) : "-";
     lines.push(
       `| ${m.index} | ${m.enzyme} | ${gene} | ${formatRange(m.ref_product_start, m.ref_product_end)} | ${formatRange(m.alt_product_start, m.alt_product_end)} (${m.alt_strand}) | ${formatFragments(m.fragments_ref)} | ${formatFragments(m.fragments_alt)} | ${m.mismatch_count} |`,
@@ -786,7 +765,6 @@ export const CapsPrimerPanel: React.FC = () => {
   }, [result]);
 
   const renderRow = (m: CapsMarkerRow) => {
-    const url = ensemblGeneUrl(m.gene_label ?? null);
     return (
       <tr key={`${m.index}-${m.enzyme}-${m.primer_left}-${m.primer_right}`}>
         <td>{m.index}</td>
@@ -886,10 +864,7 @@ export const CapsPrimerPanel: React.FC = () => {
                   {" "}
                   /{" "}
                   {(() => {
-                    const localOnly = isLocalOnlyDb(b.db);
-                    const url = localOnly
-                      ? navigatorGeneUrl({ geneId: b.gene_label, dbLabel: b.db })
-                      : ensemblGeneUrl(b.gene_label);
+                    const url = geneUrlForContext({ geneId: b.gene_label ?? null, dbLabel: b.db });
                     return url ? (
                       <a href={url} target="_blank" rel="noreferrer">
                         {b.gene_label}
