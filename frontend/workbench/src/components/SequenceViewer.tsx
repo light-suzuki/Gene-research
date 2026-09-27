@@ -263,7 +263,6 @@ export const SequenceViewer: React.FC = () => {
                   <tr>
                     <th>酵素</th>
                     <th>{en ? "First base after cleavage (1-based)" : "切断後の最初の塩基（1始まり）"}</th>
-                    <th>{en ? "Recognition and cleavage" : "認識配列と切断"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -275,11 +274,11 @@ export const SequenceViewer: React.FC = () => {
                           ? site.cut_positions.join(", ")
                           : (en ? "No recorded cuts" : "記録された切断なし")}
                       </td>
-                      <td><details><summary>{en ? "Show cleavage sequence" : "切断配列を表示"}</summary><RestrictionPattern detail={site.enzyme_detail} /></details></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              {restrictionSites.map(site => <details key={site.enzyme}><summary>{site.enzyme} · {en ? "Show cleavage sequence" : "切断配列を表示"}</summary><RestrictionPattern detail={site.enzyme_detail} /></details>)}
             </section>
           )}
 
