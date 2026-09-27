@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { bioapiBaseUrl, bioapiClient } from "../api/bioapiClient";
 import { apiPostJson } from "../api/http";
 import { useLocalBlastDbOptions, usePreferredLocalDbPaths } from "../utils/localBlastDbs";
 import { engineDbKey, isEngineDbSelected, removeEngineDbSelection, resolveEngineDbs } from "../utils/primerEngineDbs";
 import { pollJobUntilDone } from "../utils/jobPolling";
 import { useLanguage } from "../utils/language";
+import { useWorkbench } from "../utils/workbenchContext";
 import type { JobCreateResponse, JobInfo } from "../types/jobs";
 import { FeatureSequenceView } from "./FeatureSequenceView";
 import { JobProgressCard } from "./JobProgressCard";
@@ -28,6 +29,12 @@ export const PrimerBlastPanel: React.FC = () => {
   const [dbs, setDbs] = usePreferredLocalDbPaths();
   const [customDb, setCustomDb] = useState("");
   const [sequence, setSequence] = useState("");
+  const { presetSequenceInput, setPresetSequenceInput } = useWorkbench();
+  useEffect(() => {
+    if (presetSequenceInput?.target !== "primer_blast" || !presetSequenceInput.sequence) return;
+    setSequence(presetSequenceInput.sequence);
+    setPresetSequenceInput?.(null);
+  }, [presetSequenceInput, setPresetSequenceInput]);
   const [productSize, setProductSize] = useState("200-1000");
   const [count, setCount] = useState(5);
   const [busy, setBusy] = useState(false);

@@ -63,14 +63,14 @@ export const WorkflowPanel: React.FC = () => {
     }
   };
 
-  const sendSequenceTo = (tab: "sequence" | "blast") => {
+  const sendSequenceTo = (tab: "sequence" | "blast" | "primer_blast") => {
     if (!normalizedSeq) {
       showToast("配列が空です。FASTA または塩基配列を貼り付けてください。", "error");
       return;
     }
-    if (tab === "sequence") {
-      setPresetSequenceInput?.({ sequence: normalizedSeq });
-      setActiveTab?.("sequence");
+    if (tab === "sequence" || tab === "primer_blast") {
+      setPresetSequenceInput?.({ sequence: tab === "primer_blast" ? seqText : normalizedSeq, target: tab });
+      setActiveTab?.(tab);
       return;
     }
     setPresetBlastQuery?.({ sequence: normalizedSeq });
@@ -125,6 +125,9 @@ export const WorkflowPanel: React.FC = () => {
           <div className="primer-row" style={{ flexWrap: "wrap" }}>
             <button type="button" className="seq-button" onClick={() => sendSequenceTo("sequence")} disabled={!normalizedSeq}>
               Sequence 解析へ
+            </button>
+            <button type="button" className="seq-button" disabled={!normalizedSeq} onClick={() => sendSequenceTo("primer_blast")}>
+              PCR設計・特異性確認へ
             </button>
             <button type="button" className="seq-button" onClick={() => sendSequenceTo("blast")} disabled={!normalizedSeq}>
               BLAST へ
