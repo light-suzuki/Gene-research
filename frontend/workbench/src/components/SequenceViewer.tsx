@@ -10,6 +10,8 @@ import type {
 import { downloadMarkdown, openPrintViewForMarkdown } from "../utils/exportReport";
 import { useWorkbench } from "../utils/workbenchContext";
 import { useLanguage } from "../utils/language";
+import { RestrictionPattern } from "./RestrictionPattern";
+import { EnzymePicker } from "./EnzymePicker";
 
 // シンプルな Linear View ベースのシーケンス解析 UI
 export const SequenceViewer: React.FC = () => {
@@ -252,6 +254,7 @@ export const SequenceViewer: React.FC = () => {
             </section>
           )}
 
+          <EnzymePicker onAdd={name => setEnzymesInput(previous => Array.from(new Set([...previous.split(",").map(value => value.trim()).filter(Boolean),name])).join(","))} />
           {restrictionSites.length > 0 && (
             <section className="seq-result-block">
               <h2>{en ? "Restriction sites" : "制限酵素サイト"}</h2>
@@ -259,7 +262,7 @@ export const SequenceViewer: React.FC = () => {
                 <thead>
                   <tr>
                     <th>酵素</th>
-                    <th>切断位置 (1-based)</th>
+                    <th>{en ? "First base after cleavage (1-based)" : "切断後の最初の塩基（1始まり）"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -269,12 +272,13 @@ export const SequenceViewer: React.FC = () => {
                       <td>
                         {site.cut_positions.length > 0
                           ? site.cut_positions.join(", ")
-                          : "なし"}
+                          : (en ? "No recorded cuts" : "記録された切断なし")}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              {restrictionSites.map(site => <details key={site.enzyme}><summary>{site.enzyme} · {en ? "Show cleavage sequence" : "切断配列を表示"}</summary><RestrictionPattern detail={site.enzyme_detail} /></details>)}
             </section>
           )}
 

@@ -19,9 +19,16 @@ from ..models.schemas import (
     SequenceBasicAnalysisResponse,
 )
 from ..services import sequence_service
+from ..services.restriction_detail import enzyme_detail
+from ..services.enzyme_catalog import catalog
 
 
 router = APIRouter(prefix="/sequence", tags=["sequence"])
+
+
+@router.get("/enzymes")
+async def enzyme_catalog():
+    return catalog()
 
 
 @router.post("/analyze/basic", response_model=SequenceBasicAnalysisResponse)
@@ -80,13 +87,16 @@ async def analyze_restriction(
             detail="少なくとも 1 つ以上の制限酵素名を指定してください。",
         )
 
-    result = sequence_service.analyze_restriction_sites(
-        sequence=request.sequence,
-        enzymes=request.enzymes,
-    )
+    try:
+        result = sequence_service.analyze_restriction_sites(
+            sequence=request.sequence, enzymes=request.enzymes,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     cut_site_models = [
-        RestrictionCutSite(enzyme=name, cut_positions=positions)
+        RestrictionCutSite(enzyme=name, cut_positions=positions,
+                           enzyme_detail=enzyme_detail(name, sequence_service._normalize_sequence(request.sequence)))
         for name, positions in result.items()
     ]
 

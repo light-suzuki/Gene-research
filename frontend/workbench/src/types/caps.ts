@@ -1,6 +1,7 @@
 // CAPS primer / marker design API (/caps/design) の型定義
 
 export interface CapsBlastAmpliconSummary {
+  product_sizes?: number[];
   db: string;
   amplicon_count: number;
   quality?: string | null;
@@ -11,6 +12,11 @@ export interface CapsBlastAmpliconSummary {
 }
 
 export interface CapsMarkerRow {
+  enzyme_detail?: import("../components/RestrictionPattern").EnzymeDetail | null;
+  ref_cut_windows?: import("../components/RestrictionPattern").CutWindow[];
+  alt_cut_windows?: import("../components/RestrictionPattern").CutWindow[];
+  ref_product_sequence?: string | null;
+  alt_product_sequence?: string | null;
   index: number;
   enzyme: string;
   primer_left: string;

@@ -205,7 +205,7 @@ export const geneUrlForContext = (opts: {
 // --- Optional local reference browser integration ---
 
 export const isLocalOnlyDb = (dbLabel: string | undefined | null): boolean => {
-  return Boolean(dbLabel?.trim()) && !Boolean((import.meta.env.VITE_ENSEMBL_SPECIES as string | undefined)?.trim());
+  return Boolean(dbLabel?.trim()) && !(import.meta.env.VITE_ENSEMBL_SPECIES as string | undefined)?.trim();
 };
 
 /**
