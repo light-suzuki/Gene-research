@@ -29,6 +29,7 @@ export const SequenceViewer: React.FC = () => {
     RestrictionCutSite[]
   >([]);
   useEffect(() => {
+    if ((presetSequenceInput?.target ?? "sequence") !== "sequence") return;
     const preset = presetSequenceInput?.sequence?.trim();
     if (!preset) return;
     setSequence(preset);

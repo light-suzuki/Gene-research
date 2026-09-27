@@ -1,6 +1,9 @@
 # Research workflow workbench
 
 Sequence Workbench is the upper application for breeding and gene research.
+The Workflow entry can send the target sequence directly to PCR design/screening.
+FASTA names and separate records are preserved. Sequence handoffs specify their
+destination so previously opened hidden tabs do not consume another tool's input.
 It presents research goals, sequence/gene context, experiment inputs, visualization
 and saved results. It combines existing open-source engines rather than rebuilding
 each engine in React. New tabs require a distinct research goal, not a new library.

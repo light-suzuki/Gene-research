@@ -3,7 +3,7 @@ import { BackendHealthPill } from "./components/BackendHealthPill";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { PrimerReversePanel } from "./components/PrimerReversePanel";
 import { useLocalStorageFlag } from "./utils/storage";
-import { WorkbenchContext } from "./utils/workbenchContext";
+import { WorkbenchContext, type SequenceInputPreset } from "./utils/workbenchContext";
 import { useLanguage } from "./utils/language";
 import { applyUiLanguage } from "./utils/uiTranslation";
 
@@ -166,10 +166,7 @@ export const App: React.FC = () => {
     sequence: string;
     label?: string;
   } | null>(null);
-  const [presetSequenceInput, setPresetSequenceInput] = useState<{
-    sequence: string;
-    label?: string;
-  } | null>(null);
+  const [presetSequenceInput, setPresetSequenceInput] = useState<SequenceInputPreset | null>(null);
   const [mountedTabs, setMountedTabs] = useState<TabId[]>([initialTab]);
   const activeTabMeta = visibleTabs.find((t) => t.id === activeTab) ?? visibleTabs[0] ?? tabs[0];
   const label = (tab: (typeof tabs)[number]) => language === "ja" ? tab.labelJa : tab.labelEn;
