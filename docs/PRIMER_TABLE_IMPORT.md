@@ -33,7 +33,34 @@ Sequences are kept in their reviewed 5-prime-to-3-prime order.
 
 Official Eurofins standard DNA order forms (Japanese and English) are linked
 alongside the current official form list and FASMAC/IDT ordering guides. Vendor
-files are not redistributed or filled automatically. The two-column export is
+files are not redistributed. The two-column export is
 not represented as a vendor-specific upload template. Set vendor options and
 contact/shipping information at the vendor. No purchase or order is submitted.
 This export covers unmodified DNA; use vendor-specific forms for modifications.
+
+## Manufacturer formats
+
+The manufacturer selector includes Eurofins, NIPPON GENE, Thermo Fisher /
+Invitrogen, IDT, FASMAC, HSS and Merck / Sigma-Aldrich. Entries distinguish
+direct public templates from official Web ordering guides; not every vendor has
+a publicly downloadable form or an automatic adapter.
+
+- Invitrogen Value Oligos: dedicated XLSX uses the verified official `Oligos`
+  worksheet and Name/Sequence column headers. Blocks more than 200 oligos,
+  sequences outside 5–40 nt and bases other than ACGT. The vendor configures
+  synthesis options and may restrict product availability by region.
+- NIPPON GENE: download the official standard (0.05 micromol) or small-scale
+  (0.02 micromol) blank XLSX, then select it locally. The app fills only G/H cells
+  starting at row 7, preserving styles, formulas and other workbook entries.
+  It accepts up to 96 oligos, requires names of at most 15 ASCII alphanumeric
+  characters and rejects already populated or structurally different forms.
+  Generic export settings are not copied. Vendor defaults remain in the form;
+  open the draft in Excel, recalculate, review synthesis options, complete
+  customer details and save before submitting. No vendor import acceptance
+  or Excel recalculation is claimed by file generation alone.
+
+Sources checked against official sites and actual public workbooks on
+2026-09-27: [NIPPON GENE forms](https://nippongene-oligo.com/support/downloads/),
+[Invitrogen Value Oligos](https://www.thermofisher.com/order/custom-oligo/enterSequences),
+[FASMAC ordering](https://fasmac.co.jp/dna_rna_order_flow-2),
+[HSS ordering](https://hssnet.co.jp/order/flow/).
