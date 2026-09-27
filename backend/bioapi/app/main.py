@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from . import __version__
 from .core.config import get_settings
 from .routers import annot, blast, caps, db_manager, ensembl_seq, gene_structure, jobs, primers, sequence, tools
+from .routers import primer_engine
 
 
 def _loopback(host: str | None) -> bool:
@@ -46,7 +47,7 @@ def create_app() -> FastAPI:
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    for router in (sequence, primers, blast, caps, jobs, db_manager, annot, gene_structure, ensembl_seq, tools):
+    for router in (sequence, primers, primer_engine, blast, caps, jobs, db_manager, annot, gene_structure, ensembl_seq, tools):
         app.include_router(router.router)
     return app
 

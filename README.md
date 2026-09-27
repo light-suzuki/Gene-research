@@ -11,6 +11,14 @@ Windows向けのローカル配列解析GUIです。ブラウザとReact fronten
 
 ## Features / 機能
 
+Workbench is the upper application for breeding and gene-research workflows.
+It embeds [PrimerBLAST OSS](https://github.com/light-suzuki/primerblast-oss) as a
+Python library for PCR design and specificity; no second Primer web server is needed.
+See [the responsibility boundary](docs/WORKBENCH_ARCHITECTURE.md).
+
+Workbenchは育種・遺伝子研究の流れをまとめる上位アプリです。PrimerBLAST OSSを
+内部ライブラリとして使い、PCR設計・特異性確認を担当させます。
+
 - Sequence summary, GC, ORF, restriction sites, and SeqViz
 - Primer3 primer design and local specificity checks
 - Local BLAST and alignment inspection
