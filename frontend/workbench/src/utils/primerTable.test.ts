@@ -3,6 +3,10 @@ import { parsePrimerTable, parsePrimerText, parseDelimitedTable, sequenceInCell,
 const F = "ACGTACGTACGT", R = "TGCATGCATGCA", F2 = "GCTAGCTAGCTA", R2 = "TAGCTAGCTAGC";
 
 describe("primer table import", () => {
+  it("does not cross-pair different named parallel tables with opposite directions", () => {
+    const result = parsePrimerTable([["one_Fw", F, "", "two_Re", R2], ["one_Re", R, "", "two_Fw", F2]]);
+    expect(result.pairs.map(p => [p.forward.sequence, p.reverse.sequence])).toEqual([[F, R], [F2, R2]]);
+  });
   it("prefers primer names over preceding plate well labels", () => {
     const result = parsePrimerTable([["A1", "marker_Fw", F, "12"], ["B1", "marker_Re", R, "12"]]);
     expect(result.pairs).toHaveLength(1);

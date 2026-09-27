@@ -87,7 +87,8 @@ export const parsePrimerTable = (rows: string[][], layout: PrimerLayout = "auto"
     while (i < primers.length) {
       const a = primers[i], b = primers[i + 1];
       const headerPair = b && headers.get(a.column) && headers.get(b.column) && headers.get(a.column) !== headers.get(b.column);
-      const inlinePair = b && ((a.primer.direction && b.primer.direction && a.primer.direction !== b.primer.direction) || a.column === b.column);
+      const sameName = b && (!a.primer.name || !b.primer.name || family(a.primer.name) === family(b.primer.name));
+      const inlinePair = b && ((sameName && a.primer.direction && b.primer.direction && a.primer.direction !== b.primer.direction) || a.column === b.column);
       const horizontal = layout === "rows" || (layout === "auto" && (headerPair || inlinePair));
       if (horizontal && b) { addPair(a.primer, b.primer); i += 2; }
       else { enqueue(a.primer, a.column); i++; }
