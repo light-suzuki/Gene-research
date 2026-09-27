@@ -5,7 +5,8 @@ from app.routers.gene_structure import local_structure_from_gff
 from app.services.gff3 import parse_gff3
 
 
-def test_local_gene_ids_keep_dots_and_normalize_width_case(tmp_path):
+def test_local_gene_ids_keep_dots_and_normalize_width_case(tmp_path, monkeypatch):
+    monkeypatch.setenv("SEQWB_REFERENCE_CACHE_DIR", str(tmp_path / "cache"))
     gff = tmp_path / "annotation.gff3.gz"
     rows = "\n".join([
         "chr1\ttest\tgene\t1\t10\t.\t+\t.\tID=Psat.test.1;Alias=shared",

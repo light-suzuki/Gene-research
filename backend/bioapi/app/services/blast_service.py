@@ -31,6 +31,7 @@ from typing import Iterable, List
 import httpx
 
 from ..core.config import get_settings
+from .genome import Genome
 from ..core.paths import blast_cold_databases_dir, blast_databases_dir, blast_gpu_prefilter_cache_dir, workbench_tmp_dir, expand_user_path
 
 
@@ -4404,7 +4405,7 @@ def _find_fasta_for_db(db_prefix: Path) -> Path | None:
 
 
 @lru_cache(maxsize=256)
-def _locate_fasta_layout(fasta_path_str: str, entry: str) -> _FastaLayout:
+def _locate_fasta_layout_cached(fasta_path_str: str, entry: str, signature: tuple[int, int, int]) -> _FastaLayout:
     fasta_path = Path(fasta_path_str)
     entry_raw = (entry or "").strip()
     entry_lower = entry_raw.lower()
@@ -4452,6 +4453,13 @@ def _locate_fasta_layout(fasta_path_str: str, entry: str) -> _FastaLayout:
     raise BlastNotFoundError(f"FASTA に entry が見つかりませんでした: {entry}")
 
 
+def _locate_fasta_layout(fasta_path_str: str, entry: str) -> _FastaLayout:
+    path = Path(fasta_path_str)
+    stat = path.stat()
+    return _locate_fasta_layout_cached(str(path.resolve()), entry,
+                                      (stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns))
+
+
 def _fetch_sequence_from_fasta(
     *,
     fasta_path: Path,
@@ -4469,6 +4477,12 @@ def _fetch_sequence_from_fasta(
     if end < start:
         raise BlastInputError("end は start 以上を指定してください。")
 
+    if Path(str(fasta_path) + ".fai").exists() and fasta_path.suffix != ".gz":
+        genome = Genome(str(fasta_path))
+        if entry in genome:
+            if end > genome.length(entry):
+                raise BlastInputError("end exceeds the indexed sequence length.")
+            return genome.fetch(entry, start, end)
     layout = _locate_fasta_layout(str(fasta_path), entry)
     s0 = start - 1
     e0 = end - 1
