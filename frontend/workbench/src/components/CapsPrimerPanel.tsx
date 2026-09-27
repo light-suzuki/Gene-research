@@ -18,6 +18,9 @@ import {
 import type { BlastDbChromosome } from "../types/blast";
 import type { JobInfo } from "../types/jobs";
 import { GelMini } from "./GelMini";
+import { RestrictionPattern } from "./RestrictionPattern";
+import { FeatureSequenceView } from "./FeatureSequenceView";
+import { EnzymePicker } from "./EnzymePicker";
 import { useToast } from "./ToastProvider";
 import { pollJobUntilDone } from "../utils/jobPolling";
 import { JobProgressCard } from "./JobProgressCard";
@@ -827,7 +830,16 @@ export const CapsPrimerPanel: React.FC = () => {
     return (
       <tr key={`${m.index}-${m.enzyme}-${m.primer_left}-${m.primer_right}`}>
         <td>{m.index}</td>
-        <td>{m.enzyme}</td>
+        <td>{m.enzyme}<details className="caps-sequence-detail"><summary>切断と増幅配列 / Cleavage &amp; sequence</summary>
+          <RestrictionPattern detail={m.enzyme_detail} />
+          <h4>AA · {formatRange(m.ref_product_start, m.ref_product_end)} · {m.product_len_ref} bp</h4>
+          {m.ref_product_sequence && <FeatureSequenceView sequence={m.ref_product_sequence} primerRanges={[{start:1,end:m.primer_left.length,kind:"left"},{start:m.product_len_ref-m.primer_right.length+1,end:m.product_len_ref,kind:"right"}]} />}
+          <RestrictionPattern detail={m.enzyme_detail} windows={m.ref_cut_windows} />
+          <h4>BB · {formatRange(m.alt_product_start, m.alt_product_end)} · {m.alt_strand} · {m.product_len_alt} bp</h4>
+          {m.alt_product_sequence && <FeatureSequenceView sequence={m.alt_product_sequence} primerRanges={[{start:1,end:m.primer_left.length,kind:"left"},{start:m.product_len_alt-m.primer_right.length+1,end:m.product_len_alt,kind:"right"}]} />}
+          <RestrictionPattern detail={m.enzyme_detail} windows={m.alt_cut_windows} />
+          <p className="seq-hint">計算上の予測です。PCR・消化・ヘテロ接合体の判別はWet検証が必要です。</p>
+        </details></td>
         <td className="blast-desc" style={{ whiteSpace: "normal" }}>
           {m.gene_label ? (
             <EnsemblLinksInline
@@ -899,6 +911,7 @@ export const CapsPrimerPanel: React.FC = () => {
           {(m.blast ?? []).map((b) => (
             <div key={b.db}>
               <strong>{b.db}</strong>: {b.amplicon_count} {b.quality ? `(${b.quality})` : ""}
+              {b.product_sizes?.length ? ` · PCR: ${b.product_sizes.join(" / ")} bp` : ""}
               {b.top_subject && b.top_start != null && b.top_end != null ? (
                 (() => {
                   return (
@@ -1220,6 +1233,9 @@ export const CapsPrimerPanel: React.FC = () => {
                 <span className="seq-hint">現在 {enzymes.length} 個</span>
               </div>
             </label>
+            <div className="grid-span-2">
+              <EnzymePicker onAdd={name => setEnzymesText(previous => Array.from(new Set([...normalizeEnzymeList(previous),name])).join("\n"))} />
+            </div>
             <label className="seq-label">
               enzymes_per_primer:
               <input className="seq-input" type="number" min={1} max={20} value={enzymesPerPrimer} onChange={(e) => setEnzymesPerPrimer(Math.max(1, Math.min(20, Number(e.target.value) || 2)))} />

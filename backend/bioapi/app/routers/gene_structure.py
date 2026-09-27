@@ -16,6 +16,7 @@ from Bio.SeqIO.FastaIO import SimpleFastaParser
 from fastapi import APIRouter, HTTPException, Query
 
 from ..core.config import get_settings
+from ..services.gff3 import parse_gff3
 
 
 router = APIRouter(prefix="/ensembl", tags=["ensembl"])
@@ -104,49 +105,29 @@ def local_structure_from_gff(
     if not gff_path.exists():
         raise HTTPException(status_code=500, detail=f"GFF3 が見つかりません: {gff_path}")
 
-    target = gene_id.split("-")[0].split(".")[0]
+    try:
+        gene = parse_gff3(str(gff_path)).gene(gene_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if gene is None:
+        raise HTTPException(status_code=404, detail=f"Gene ID not found in local annotation: {gene_id}")
     exons: list[dict[str, int]] = []
     cds_list: list[dict[str, int]] = []
-    seqid: str | None = None
-    strand: int = 1
-    gene_start: int | None = None
-    gene_end: int | None = None
-
-    with _open_text_maybe_gzip(gff_path) as fh:
-        for line in fh:
-            if not line or line.startswith("#"):
-                continue
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 9:
-                continue
-            seqid_line, _source, ftype, start_s, end_s, _score, strand_s, _phase, attrs_s = parts
-            if ftype not in {"gene", "mRNA", "transcript", "exon", "CDS"}:
-                continue
-            attrs = parse_attrs(attrs_s)
-            candidates = [
-                attrs.get("ID"),
-                attrs.get("Parent"),
-                attrs.get("gene_id"),
-                attrs.get("gene"),
-                attrs.get("Name"),
-            ]
-            if not any((c and target in c) for c in candidates):
-                continue
-
-            try:
-                start = int(start_s)
-                end = int(end_s)
-            except ValueError:
-                continue
-
-            seqid = seqid_line
-            strand = 1 if strand_s == "+" else -1
-            gene_start = start if gene_start is None else min(gene_start, start)
-            gene_end = end if gene_end is None else max(gene_end, end)
-            if ftype == "exon":
-                exons.append({"start": start, "end": end})
-            if ftype == "CDS":
-                cds_list.append({"start": start, "end": end})
+    pending = list(gene.children)
+    visited: set[int] = set()
+    while pending:
+        feature = pending.pop()
+        if id(feature) in visited:
+            continue
+        visited.add(id(feature))
+        pending.extend(feature.children)
+        if feature.type == "exon":
+            exons.append({"start": feature.start, "end": feature.end})
+        if feature.type == "CDS":
+            cds_list.append({"start": feature.start, "end": feature.end})
+    seqid = gene.seqid
+    strand = -1 if gene.strand == "-" else 1
+    gene_start, gene_end = gene.start, gene.end
 
     if not exons and not cds_list:
         raise HTTPException(status_code=404, detail=f"GFF3 に {gene_id} を含むエントリが見つかりませんでした。")
@@ -222,12 +203,11 @@ async def get_gene_structure(
     local_fa_raw = os.getenv("LOCAL_FASTA_PATH", "").strip()
     local_gff = Path(local_gff_raw).expanduser() if local_gff_raw else None
     local_fa = Path(local_fa_raw).expanduser() if local_fa_raw else None
-    if local_gff and local_fa and local_gff.exists() and local_fa.exists():
-        try:
-            return local_structure_from_gff(gene_id, species, local_gff, local_fa)
-        except HTTPException:
-            # ローカルで見つからない場合のみ Ensembl REST を試す
-            pass
+    if local_gff_raw or local_fa_raw:
+        if not local_gff or not local_fa or not local_gff.exists() or not local_fa.exists():
+            raise HTTPException(status_code=400, detail="Configure both existing local GFF3 and FASTA files.")
+        # A missing local gene is not permission to disclose its ID externally.
+        return local_structure_from_gff(gene_id, species, local_gff, local_fa)
 
     def candidate_ids(original: str) -> list[str]:
         cands = [original]

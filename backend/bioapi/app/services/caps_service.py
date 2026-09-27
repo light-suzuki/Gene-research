@@ -135,16 +135,21 @@ def _compute_fragments(product_len: int, cut_positions: list[int]) -> list[int]:
 
 
 def _enzyme_classes(names: list[str]) -> tuple[list[type], list[str]]:
-    available = {enzyme.__name__: enzyme for enzyme in AllEnzymes}
+    from .restriction_detail import resolve_enzyme
+    from .enzyme_catalog import enzyme_info
     valid: list[type] = []
     unknown: list[str] = []
     for name in names:
         n = (name or "").strip()
         if not n:
             continue
-        cls = available.get(n)
+        cls = resolve_enzyme(n)
         if cls is None:
             unknown.append(n)
+            continue
+        info = enzyme_info(cls.__name__)
+        if info and not info["prediction_supported"]:
+            unknown.append(n + " (unsupported ordinary PCR substrate/cleavage model)")
             continue
         valid.append(cls)
     # 重複除去（順序は保持）
@@ -982,8 +987,16 @@ def design_caps_markers(
         for cand in enzyme_candidates:
             if len(rows) >= max_markers:
                 break
+            from .restriction_detail import enzyme_detail
+            ref_detail = enzyme_detail(cand["enzyme"], product_a)
+            alt_detail = enzyme_detail(cand["enzyme"], product_b)
             rows.append(
                 {
+                    "enzyme_detail": enzyme_detail(cand["enzyme"]),
+                    "ref_cut_windows": ref_detail["windows"] if ref_detail else [],
+                    "alt_cut_windows": alt_detail["windows"] if alt_detail else [],
+                    "ref_product_sequence": product_a,
+                    "alt_product_sequence": product_b,
                     "enzyme": cand["enzyme"],
                     "primer_left": left_seq,
                     "primer_right": right_seq,
@@ -1105,6 +1118,7 @@ def design_caps_markers(
                 {
                     "db": _db_label(db),
                     "amplicon_count": count,
+                    "product_sizes": [int(product["end"]) - int(product["start"]) + 1 for product in amplicons],
                     "quality": _quality_from_amplicons(count),
                     "top_subject": top.get("subject") if top else None,
                     "top_start": top.get("start") if top else None,

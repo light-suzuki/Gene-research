@@ -92,6 +92,7 @@ class RestrictionCutSite(BaseModel):
     """1 つの制限酵素に対する切断サイト情報。"""
 
     enzyme: str = Field(..., description="制限酵素名")
+    enzyme_detail: dict | None = None
     cut_positions: List[int] = Field(
         ...,
         description="切断位置（1-based, 塩基インデックス）の一覧",
@@ -846,6 +847,7 @@ class BlastLiftoverResponse(BaseModel):
 
 
 class CapsBlastAmpliconSummary(BaseModel):
+    product_sizes: List[int] = Field(default_factory=list)
     db: str = Field(..., description="評価に使った BLAST DB ラベル（例: reference_v1）")
     amplicon_count: int = Field(..., ge=0, description="予測 PCR 産物数")
     quality: str | None = Field(None, description="簡易品質（S/A/B/C/D）")
@@ -856,6 +858,11 @@ class CapsBlastAmpliconSummary(BaseModel):
 
 
 class CapsMarkerRow(BaseModel):
+    enzyme_detail: dict | None = None
+    ref_cut_windows: List[dict] = Field(default_factory=list)
+    alt_cut_windows: List[dict] = Field(default_factory=list)
+    ref_product_sequence: str | None = None
+    alt_product_sequence: str | None = None
     index: int = Field(..., ge=1, description="1-based の行番号")
     enzyme: str = Field(..., description="制限酵素名（Biopython のクラス名）")
     primer_left: str = Field(..., description="Forward primer（5'→3'）")
