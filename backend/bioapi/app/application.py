@@ -13,6 +13,7 @@ from .services import sequence_service, primer_service, caps_service, blast_serv
 from .services.enzyme_catalog import catalog
 from .services.restriction_detail import enzyme_detail
 from .services.gene_service import local_structure_from_gff
+from .services.primer_engine import PrimerEngineRequest, design as primerblast_design
 
 
 class LocalGeneRequest(BaseModel):
@@ -95,6 +96,7 @@ def blast_local(request):
 
 
 OPERATIONS: dict[str, tuple[type[BaseModel], Callable]] = {
+    "primerblast.design": (PrimerEngineRequest, primerblast_design),
     "sequence.basic": (SequenceBasicAnalysisRequest, sequence_basic),
     "sequence.orfs": (OrfAnalysisRequest, sequence_orfs),
     "sequence.restriction": (RestrictionAnalysisRequest, sequence_restriction),

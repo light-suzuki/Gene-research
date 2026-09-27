@@ -116,7 +116,7 @@ const tabs: { id: TabId; labelJa: string; labelEn: string; descJa: string; descE
   {
     id: "primer_blast",
     labelJa: "PrimerBLAST", labelEn: "PrimerBLAST",
-    descJa: "貼り付け配列→Primer3→複数DBで特異性チェック", descEn: "Primer3 design followed by multi-database specificity checks",
+    descJa: "組み込みPrimerBLAST OSSでPCR設計・特異性確認", descEn: "PCR design and specificity with embedded PrimerBLAST OSS",
     color: "#4338ca",
   },
   {
@@ -198,7 +198,7 @@ export const App: React.FC = () => {
       <div className="app-shell">
         <header className={`app-hero ${heroCollapsed ? "is-collapsed" : ""}`}>
           <div className="hero-left">
-            <p className="hero-kicker">Generic local sequence tools • SnapGene view</p>
+            <p className="hero-kicker">{language === "ja" ? "育種・遺伝子研究のローカルワークベンチ" : "Local workbench for breeding and gene research"}</p>
             <div className="hero-title-row">
               <h1 className="hero-title">Sequence Workbench</h1>
               <details className="ui-details hero-details hero-help">
@@ -214,7 +214,7 @@ export const App: React.FC = () => {
               </details>
             </div>
             <p className="app-subtitle">
-              {language === "ja" ? "配列解析・プライマー設計・BLASTをまとめたローカルワークベンチ。" : "A local workbench for sequence analysis, primer design, and BLAST."}
+              {language === "ja" ? "対象を選び、解析・実験設計・結果確認へ。各ツールを研究の流れにつなぎます。" : "Choose a target, analyze it, design your experiment, and inspect the results."}
             </p>
           </div>
           <div className="hero-meta">

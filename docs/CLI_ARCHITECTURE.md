@@ -26,6 +26,8 @@ python -m app.cli run --input request.json
 
 The schema command lists typed JSON schemas for:
 
+- `primerblast.design` (embedded PrimerBLAST OSS design and specificity)
+
 - `sequence.basic`, `sequence.orfs`, `sequence.restriction`
 - `primers.design`, `caps.design`
 - `sequence.fetch`, `gene.structure`, `blast.local`, `enzymes.catalog`
