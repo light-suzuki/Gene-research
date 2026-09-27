@@ -1,5 +1,6 @@
 """Embedded local PrimerBLAST engine. No HTTP bridge or GUI process."""
 from pydantic import BaseModel, ConfigDict, Field
+from pathlib import Path
 from primerblast_oss.workflows import execute as run_engine
 
 
@@ -14,4 +15,6 @@ class PrimerEngineRequest(BaseModel):
 
 
 def design(request: PrimerEngineRequest):
-    return run_engine("design", request.model_dump())
+    params = request.model_dump()
+    params["db"] = [str(Path(db).expanduser()) for db in request.db]
+    return run_engine("design", params)

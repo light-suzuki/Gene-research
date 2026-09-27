@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { bioapiBaseUrl, bioapiClient } from "../api/bioapiClient";
 import { apiPostJson } from "../api/http";
 import { useLocalBlastDbOptions, usePreferredLocalDbPaths } from "../utils/localBlastDbs";
+import { engineDbKey, isEngineDbSelected, removeEngineDbSelection, resolveEngineDbs } from "../utils/primerEngineDbs";
 import { pollJobUntilDone } from "../utils/jobPolling";
 import { useLanguage } from "../utils/language";
 import type { JobCreateResponse, JobInfo } from "../types/jobs";
@@ -40,9 +41,9 @@ export const PrimerBlastPanel: React.FC = () => {
 
   const run = async () => {
     setError("");
-    const selectedDbs = Array.from(new Set([...dbs, customDb.trim()].filter(Boolean)));
+    const selectedDbs = resolveEngineDbs(dbs, options, customDb);
     if (!sequence.trim() || !selectedDbs.length) {
-      setError(text("配列と参照DBを指定してください。", "Supply a sequence and a reference database."));
+      setError("missing-inputs");
       return;
     }
     setBusy(true); setResult(null); setSelected(0); setJob(null); setJobId(null);
@@ -71,8 +72,10 @@ export const PrimerBlastPanel: React.FC = () => {
     <fieldset disabled={busy}><legend>{text("2. 検索する参照DB（複数選択可）", "2. Reference databases (multiple selections allowed)")}</legend>
       {dbLoading && <p>{text("DB一覧を読み込み中…", "Loading databases…")}</p>}
       {dbError && <p role="alert">{dbError}</p>}
-      {options.map(o => { const path = o.path ?? o.value; return <label key={path} style={{ display: "inline-flex", gap: 6, marginRight: 16 }}>
-        <input type="checkbox" checked={dbs.includes(path)} onChange={e => setDbs(old => e.target.checked ? [...old, path] : old.filter(p => p !== path))} />{o.label}</label>; })}
+      {options.map(o => { const path = engineDbKey(o); return <label key={path} style={{ display: "inline-flex", gap: 6, marginRight: 16 }}>
+        <input type="checkbox" checked={isEngineDbSelected(dbs, o)} onChange={e => setDbs(old => e.target.checked ? [...old, path] : removeEngineDbSelection(old, o))} />{o.label}</label>; })}
+      {dbs.filter(path => !options.some(o => isEngineDbSelected([path], o))).map(path => <label key={path} style={{ display: "block" }}>
+        <input type="checkbox" checked onChange={() => setDbs(old => old.filter(p => p !== path))} /> {path} ({text("保存済みの選択・現在の一覧にありません", "saved selection; not in the current list")})</label>)}
       <label style={{ display: "block", marginTop: 12 }}>{text("追加のローカルDB（任意・文字入力）", "Additional local DB (optional text input)")}
         <input value={customDb} onChange={e => setCustomDb(e.target.value)} style={{ width: "100%" }} /></label>
     </fieldset>
@@ -83,7 +86,7 @@ export const PrimerBlastPanel: React.FC = () => {
     </div>
     <JobProgressCard jobId={jobId} job={job} onCancel={busy ? () => void cancel() : null} />
     {busy && <p>{text("停止要求は実行中の設計・検索が終わった時点で反映されます。", "Cancellation takes effect after the current design/search finishes.")}</p>}
-    {error && <p role="alert" style={{ color: "#b91c1c" }}>{error}</p>}
+    {error && <p role="alert" style={{ color: "#b91c1c" }}>{error === "missing-inputs" ? text("配列と参照DBを指定してください。", "Supply a sequence and a reference database.") : error}</p>}
     {result && <>
       <p>{text("in-silico予測です。Wet未検証。期待サイズ付近の産物はサイズで分類しており、狙った遺伝子の証明ではありません。検索未完了は特異性ありと判定できません。", "In-silico prediction; Wet unverified. Expected-size products are classified by size, not proven target identity. Incomplete searches cannot establish specificity.")}</p>
       {!pairs.length && <p>{text("候補がありません。配列長や産物長の条件を確認してください。", "No candidates. Check sequence length and product size limits.")}</p>}
