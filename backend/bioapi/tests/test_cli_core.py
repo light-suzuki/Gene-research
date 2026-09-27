@@ -1,6 +1,9 @@
 import json
 import subprocess
 import sys
+import io
+import pytest
+from app import cli as agent_cli
 
 from fastapi.testclient import TestClient
 from app.application import execute, capabilities, caps_payload
@@ -83,3 +86,20 @@ def test_cli_module_does_not_import_http_application():
     result = subprocess.run([sys.executable, "-c", "import app.cli, sys; assert 'app.main' not in sys.modules; assert 'app.routers.blast' not in sys.modules"],
                             capture_output=True, encoding="utf-8")
     assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize("result", [float("nan"), {"not_json": {1, 2}}])
+def test_unencodable_engine_result_returns_json_error(monkeypatch, capsys, result):
+    monkeypatch.setattr(agent_cli, "execute", lambda *_: result)
+    monkeypatch.setattr(sys, "stdin", io.StringIO('\ufeff{"operation":"sequence.basic","params":{},"request_id":"r1"}'))
+    assert agent_cli.main(["run"]) == 1
+    output = json.loads(capsys.readouterr().out)
+    assert output["error"]["code"] == "execution_failed" and output["request_id"] == "r1"
+
+
+@pytest.mark.parametrize("number", ["NaN", "Infinity", "-Infinity"])
+def test_nonfinite_input_is_rejected_before_execution(monkeypatch, capsys, number):
+    monkeypatch.setattr(agent_cli, "execute", lambda *_: pytest.fail("must not execute"))
+    monkeypatch.setattr(sys, "stdin", io.StringIO('{"operation":"sequence.basic","params":{"value":' + number + '}}'))
+    assert agent_cli.main(["run"]) == 2
+    assert json.loads(capsys.readouterr().out)["error"]["code"] == "invalid_request"
