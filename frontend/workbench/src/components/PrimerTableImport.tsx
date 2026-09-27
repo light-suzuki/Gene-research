@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { parsePrimerTable, parsePrimerText, pairsToFasta, type PrimerLayout } from "../utils/primerTable";
 import { readPrimerFile, type PrimerSheet } from "../utils/primerWorkbook";
+import { PrimerOrderSheet } from "./PrimerOrderSheet";
 
 export const PrimerTableImport: React.FC<{ text: string; disabled?: boolean; onApply: (text: string, warning: string) => void }> = ({ text, disabled, onApply }) => {
   const [sheets, setSheets] = useState<PrimerSheet[]>([]);
@@ -12,6 +13,7 @@ export const PrimerTableImport: React.FC<{ text: string; disabled?: boolean; onA
   const [error, setError] = useState("");
   const parsed = useMemo(() => sheets[sheet] ? parsePrimerTable(sheets[sheet].rows, layout, sheets[sheet].name) : parsePrimerText(text, layout), [text, sheets, sheet, layout]);
   useEffect(() => { setExcluded(new Set()); setSwapped(new Set()); }, [text, sheets, sheet, layout]);
+  const selectedPairs = useMemo(() => parsed.pairs.flatMap((pair, i) => excluded.has(i) ? [] : [swapped.has(i) ? { forward: pair.reverse, reverse: pair.forward } : pair]), [parsed, excluded, swapped]);
   const read = async (file?: File) => {
     if (!file) return;
     setLoading(true); setError(""); setSheets([]);
@@ -59,5 +61,6 @@ export const PrimerTableImport: React.FC<{ text: string; disabled?: boolean; onA
     {parsed.pairs.length > 500 && <p role="alert">500ペアを超えます。範囲を分けて取り込んでください。</p>}
     {!!parsed.unpaired.length && <details><summary>ペア未確定の配列（検索には含めません）</summary>{parsed.unpaired.map((p, i) => <p key={i}>{p.name || "名前なし"} · {p.source} · <code>{p.sequence}</code></p>)}</details>}
     <button className="seq-button" disabled={disabled || loading || !!error || !parsed.pairs.length || parsed.pairs.length > 500 || excluded.size === parsed.pairs.length} onClick={apply}>確認したペアを検索入力へ取り込む</button>
+    <PrimerOrderSheet pairs={selectedPairs} disabled={disabled || loading || !!error} />
   </div>;
 };
