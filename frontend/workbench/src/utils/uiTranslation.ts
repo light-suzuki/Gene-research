@@ -5,7 +5,26 @@ const japanese = /[ぁ-んァ-ヶ一-龠]/;
 const decodeEntities = (value: string): string =>
   value.replaceAll("&apos;", "'").replaceAll("&quot;", '"').replaceAll("&amp;", "&");
 const translatedUi = Object.fromEntries(
-  Object.entries(generatedEnglishUi).map(([source, target]) => [decodeEntities(source), target]),
+  Object.entries({ ...generatedEnglishUi,
+    "Excel・表から読み取る": "Import Excel or a table",
+    "Excelのセルを上に貼り付けるか、ファイルを選択してください。ここでは検索せず、配列とペアを確認します。ファイルはブラウザ内で読み取ります。": "Paste Excel cells above or choose a file. Review sequences and pairs before searching. Files are read locally in your browser.",
+    "Excel / CSV / TSV ファイル": "Excel / CSV / TSV file",
+    "読むシート": "Worksheet",
+    "貼り付けた内容を読む": "Read pasted text",
+    "ペアの読み方": "Pair layout",
+    "自動（見出しを優先・名前なしは各列で上下）": "Automatic: use headers; otherwise pair vertically in each column",
+    "各列で上下2本が1ペア（縦の表が横に複数あっても可）": "Vertical: consecutive primers in each column, including parallel tables",
+    "横の2本で1ペア（1行に名前・Fw・Re）": "Horizontal: two primers in each row (name / Fw / Re)",
+    "対応する表と記法の例": "Supported layouts and examples",
+    "名前・元の位置": "Names and source cells",
+    "Fw / Re 配列（5′→3′）": "Fw / Re sequences (5′→3′)",
+    "Fw/Reを入れ替え": "Swap Fw/Re",
+    "確認したペアを検索入力へ取り込む": "Use reviewed pairs as search input",
+    "ペア未確定の配列（検索には含めません）": "Unpaired primers (excluded from search)",
+    "本がペア未確定": "unpaired primers",
+    "読み取り中…": "Reading…",
+    "500ペアを超えます。範囲を分けて取り込んでください。": "Over 500 pairs. Import a smaller range at a time.",
+  }).map(([source, target]) => [decodeEntities(source), target]),
 );
 const entries = Object.entries(translatedUi).sort(([left], [right]) => right.length - left.length);
 const originalText = new Map<Text, string>();
