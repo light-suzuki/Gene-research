@@ -4541,7 +4541,7 @@ def _resolve_gblastn_binary() -> str | None:
 
     優先順位:
     1. 環境変数 GBLASTN_BIN
-    2. 既知のローカル候補パス
+    2. ホーム配下の標準候補パス
     3. PATH 上の gblastn / blastn_gpu
     """
     logger = logging.getLogger(__name__)
@@ -4560,7 +4560,6 @@ def _resolve_gblastn_binary() -> str | None:
     preferred_candidates = [
         home / "sequence_workbench/tools/G-BLASTN/c++/GCC1300-ReleaseMT64/bin/blastn",
         home / "G-BLASTN/c++/GCC1300-ReleaseMT64/bin/blastn",
-        Path("/mnt/c/Users/user.Windows-PC/projects/G-BLASTN/c++/GCC1300-ReleaseMT64/bin/blastn"),
     ]
     for p in preferred_candidates:
         if p.exists() and p.is_file() and os.access(str(p), os.X_OK):
@@ -4594,7 +4593,7 @@ def _resolve_cuda_blastn_binary() -> tuple[str | None, str]:
 
     優先順位:
     1. 環境変数 CUDA_BLASTN
-    2. この環境で利用実績のある候補パス
+    2. ホーム配下の標準候補パス
     3. PATH 上の cuda-blastn / cuda_blastn_opt
     """
     logger = logging.getLogger(__name__)
@@ -4614,7 +4613,6 @@ def _resolve_cuda_blastn_binary() -> tuple[str | None, str]:
     preferred_candidates = [
         home / "cuda-blastn/bin/cuda-blastn",
         home / "cuda-blastn/build/cuda_blastn_opt",
-        Path("/mnt/c/Users/user.Windows-PC/projects/cuda-blastn/build/cuda_blastn_opt"),
     ]
     for p in preferred_candidates:
         if p.exists() and p.is_file() and os.access(str(p), os.X_OK):

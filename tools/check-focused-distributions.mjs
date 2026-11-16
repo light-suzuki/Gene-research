@@ -11,6 +11,14 @@
 //   - no unexpected extra file appeared in the focused repo
 //   - intentional differences listed in intentionalDiffs are tolerated
 //
+// A repo entry with "mode": "standalone" (e.g. SequenceInspector, a single-HTML
+// app with its own tree) is NOT a source distribution: only the files listed in
+// its "sharedFiles" (repo-wide boilerplate such as issue templates) must be
+// byte-identical to the parent; everything else in that repo is its own.
+//
+// To bring the focused repos back in sync after a parent change, run
+// tools/sync-focused-distributions.mjs (it applies exactly the rules above).
+//
 // Usage:
 //   node tools/check-focused-distributions.mjs            # check (clones to temp)
 //   node tools/check-focused-distributions.mjs --record   # check + record synced revisions
@@ -93,6 +101,21 @@ function checkRepo(entry, parentDir, workDir) {
   const head = existsSync(path.join(repoDir, ".git")) ? runGit(["rev-parse", "HEAD"], repoDir) : null;
   const focusedFiles = listFiles(repoDir);
   const parentFiles = listFiles(parentDir);
+
+  if (entry.mode === "standalone") {
+    const standaloneDrift = [];
+    for (const file of entry.sharedFiles ?? []) {
+      if (!parentFiles.includes(file)) standaloneDrift.push(`shared file missing in parent: ${file}`);
+      else if (!focusedFiles.includes(file)) standaloneDrift.push(`missing: ${file}`);
+      else if (hashFile(path.join(parentDir, file)) !== hashFile(path.join(repoDir, file))) {
+        standaloneDrift.push(`modified: ${file}`);
+      }
+    }
+    for (const file of entry.addedFiles ?? []) {
+      if (!focusedFiles.includes(file)) standaloneDrift.push(`missing added file: ${file}`);
+    }
+    return { entry, head, revisionNote: "", drift: standaloneDrift, intentionalHits: [] };
+  }
 
   const removed = new Set(entry.removedFiles ?? []);
   const added = new Set(entry.addedFiles ?? []);

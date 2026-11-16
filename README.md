@@ -1,7 +1,7 @@
 # Gene Research / Sequence Workbench
 
 [![CI](https://github.com/light-suzuki/Gene-research/actions/workflows/ci.yml/badge.svg)](https://github.com/light-suzuki/Gene-research/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/light-suzuki/=semver)](https://github.com/light-suzuki/Gene-research/releases)
+[![Release](https://img.shields.io/github/v/release/light-suzuki/Gene-research?sort=semver)](https://github.com/light-suzuki/Gene-research/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 
