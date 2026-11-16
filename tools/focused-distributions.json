@@ -14,10 +14,10 @@
         "frontend/workbench/index.html": "product name の title",
         "frontend/workbench/src/App.tsx": "focusedTabs のみを表示する版"
       },
-      "revision": "cb191a0cd2bdd60e68db9440110748ac81926d2b",
+      "revision": "4f1308e4bdf47f71742c00a180823e6dd7e3dfae",
       "description": "BLAST, BLAST-OR, and DB management",
       "branch": "main",
-      "parentRevision": "12f118d118c8da7b99888e6b2184f2203358dd3f",
+      "parentRevision": "52b1055671a20aea81894492eb81dcddee17c254",
       "repo": "light-suzuki/LocalBlastWorkbench",
       "removedFiles": [
         ".github/workflows/focused-distributions.yml",
@@ -48,10 +48,10 @@
         "frontend/workbench/index.html": "product name の title",
         "frontend/workbench/src/App.tsx": "focusedTabs のみを表示する版"
       },
-      "revision": "41945af7b48d1b3b508e3072da34bfa3533442c3",
+      "revision": "2afbac3a251cf61839766b9caccdb63942ce720a",
       "description": "primer design, specificity checks, and primer lookup",
       "branch": "main",
-      "parentRevision": "12f118d118c8da7b99888e6b2184f2203358dd3f",
+      "parentRevision": "52b1055671a20aea81894492eb81dcddee17c254",
       "repo": "light-suzuki/PrimerWorkbench",
       "removedFiles": [
         ".github/workflows/focused-distributions.yml",
@@ -83,10 +83,10 @@
         "frontend/workbench/index.html": "product name の title",
         "frontend/workbench/src/App.tsx": "focusedTabs のみを表示する版"
       },
-      "revision": "f992cd88c78470b935fced47fe53cd9f38ef1c34",
+      "revision": "e1c310a966c154130895e189afa448155fd599a0",
       "description": "CDS/exon, sequencing-primer, and CAPS workflows",
       "branch": "main",
-      "parentRevision": "12f118d118c8da7b99888e6b2184f2203358dd3f",
+      "parentRevision": "52b1055671a20aea81894492eb81dcddee17c254",
       "repo": "light-suzuki/MarkerWorkbench",
       "removedFiles": [
         ".github/workflows/focused-distributions.yml",
@@ -111,10 +111,10 @@
       "addedFiles": [
         "index.html"
       ],
-      "revision": "aa04f9b19bbbc56c7e82013e4fcfe39bcb2d7107",
+      "revision": "2a1ee7ddb5f4e0b800fad82083fc40b34af82cee",
       "description": "offline browser-only sequence checks",
       "branch": "main",
-      "parentRevision": "12f118d118c8da7b99888e6b2184f2203358dd3f",
+      "parentRevision": "52b1055671a20aea81894492eb81dcddee17c254",
       "repo": "light-suzuki/SequenceInspector",
       "mode": "standalone",
       "sharedFiles": [
