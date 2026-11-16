@@ -21,6 +21,7 @@
       "repo": "light-suzuki/LocalBlastWorkbench",
       "removedFiles": [
         ".github/workflows/focused-distributions.yml",
+        "frontend/workbench/src/components/CapsPrimerPanel.report.test.ts",
         "frontend/workbench/src/components/CapsPrimerPanel.tsx",
         "frontend/workbench/src/components/ExonPrimerPanel.tsx",
         "frontend/workbench/src/components/FeatureSequenceView.tsx",
@@ -57,6 +58,7 @@
         "frontend/workbench/src/components/BlastHitTrack.tsx",
         "frontend/workbench/src/components/BlastOrPanel.tsx",
         "frontend/workbench/src/components/BlastPanel.tsx",
+        "frontend/workbench/src/components/CapsPrimerPanel.report.test.ts",
         "frontend/workbench/src/components/CapsPrimerPanel.tsx",
         "frontend/workbench/src/components/DbManagerPanel.tsx",
         "frontend/workbench/src/components/ExonPrimerPanel.tsx",
@@ -91,6 +93,7 @@
         "frontend/workbench/src/components/BlastHitTrack.tsx",
         "frontend/workbench/src/components/BlastOrPanel.tsx",
         "frontend/workbench/src/components/BlastPanel.tsx",
+        "frontend/workbench/src/components/CapsPrimerPanel.report.test.ts",
         "frontend/workbench/src/components/DbManagerPanel.tsx",
         "frontend/workbench/src/components/PrimerBlastPanel.tsx",
         "frontend/workbench/src/components/PrimerPanel.tsx",
