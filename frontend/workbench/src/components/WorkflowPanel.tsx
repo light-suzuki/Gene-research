@@ -1,17 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { useWorkbench } from "../utils/workbenchContext";
 import { extractPrimerSeqsFromLine, normalizePrimerSeq, parseFastaPrimers } from "../utils/primerInput";
+import { normalizeWorkflowSequence } from "../utils/workflowSequence";
 import { useToast } from "./ToastProvider";
-
-const normalizeSequence = (text: string): string =>
-  (text || "")
-    .split(/\r?\n/)
-    .filter((l) => !l.trim().startsWith(">"))
-    .join("")
-    .replace(/\s+/g, "")
-    .toUpperCase()
-    .replace(/[^ACGTURYKMSWBDHVN]/g, "")
-    .replace(/U/g, "T");
 
 type PrimerPair = { left: string; right: string };
 
@@ -47,7 +38,9 @@ export const WorkflowPanel: React.FC = () => {
   const [primerText, setPrimerText] = useState<string>("");
   const [pairIndex, setPairIndex] = useState<number>(0);
 
-  const normalizedSeq = useMemo(() => normalizeSequence(seqText), [seqText]);
+  const seqResult = useMemo(() => normalizeWorkflowSequence(seqText), [seqText]);
+  const normalizedSeq = seqResult.ok ? seqResult.sequence : "";
+  const seqError = seqResult.ok ? "" : seqResult.error;
   const primerPairs = useMemo(() => parsePrimerPairs(primerText), [primerText]);
 
   const selectedPair = primerPairs[pairIndex] ?? null;
@@ -64,6 +57,10 @@ export const WorkflowPanel: React.FC = () => {
   };
 
   const sendSequenceTo = (tab: "sequence" | "blast" | "primer_blast") => {
+    if (!seqResult.ok) {
+      showToast(seqResult.error, "error");
+      return;
+    }
     if (!normalizedSeq) {
       showToast("配列が空です。FASTA または塩基配列を貼り付けてください。", "error");
       return;
@@ -104,6 +101,11 @@ export const WorkflowPanel: React.FC = () => {
             placeholder={"例:\n>gene\nATG..."}
           />
           <div className="seq-hint">正規化後: {normalizedSeq.length.toLocaleString()} bp</div>
+          {seqError ? (
+            <div className="seq-hint" role="alert" style={{ color: "#b42318" }}>
+              {seqError}
+            </div>
+          ) : null}
         </label>
 
         <label className="seq-label grid-span-2">
